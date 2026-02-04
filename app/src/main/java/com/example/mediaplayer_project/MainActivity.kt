@@ -35,6 +35,12 @@ class MainActivity : AppCompatActivity() {
     private var current = 0
     private val handler = android.os.Handler(Looper.getMainLooper())
 
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
