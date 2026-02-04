@@ -1,17 +1,21 @@
 package com.example.mediaplayer_project
 
 import android.Manifest
-import android.content.ContentUris
 import android.content.Context
-import android.graphics.Bitmap
+import android.graphics.Color
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.provider.MediaStore
-import android.util.Size
+import android.util.Log
+import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,7 +30,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var permissionListener: PermissionListener
     private lateinit var arrayOfSongs: ArrayList<Song>
     private lateinit var mediaRecyclerView: RecyclerView
-    private lateinit var mediaPlayer: MediaPlayer
+    private var adapter: MyAdapter ?= null
+    private var mediaPlayer: MediaPlayer? = null
+    private var current = 0
+    private val handler = android.os.Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,11 +49,25 @@ class MainActivity : AppCompatActivity() {
         mediaRecyclerView = findViewById(R.id.recyclerView)
         mediaRecyclerView.layoutManager = LinearLayoutManager(this)
 
+        setupControlButtons()
+
         permissionListener = object : PermissionListener {
             override fun onPermissionGranted() {
                 arrayOfSongs = fetchSongs(this@MainActivity)
-                val adapter = MyAdapter(this@MainActivity, arrayOfSongs)
+                adapter = MyAdapter(this@MainActivity, arrayOfSongs)
                 mediaRecyclerView.adapter = adapter
+
+                val txtCount = findViewById<TextView>(R.id.txtNumber)
+                val txtTitle = findViewById<TextView>(R.id.txtTitle)
+                val txtArtist = findViewById<TextView>(R.id.txtArtist)
+                val txtDuration = findViewById<TextView>(R.id.txtDuration)
+
+                adapter?.setOnItemClickListener(object : MyAdapter.OnItemClickListener{
+                    override fun onItemClick(position: Int) {
+                        adapter?.setSelected(position)
+                        startMusic(position)
+                    }
+                })
             }
 
             override fun onPermissionDenied(p0: List<String?>?) {
@@ -64,6 +85,95 @@ class MainActivity : AppCompatActivity() {
                 .setPermissions(Manifest.permission.READ_MEDIA_AUDIO)
                 .check()
         }
+    }
+
+    private fun setupControlButtons(){
+        binding.btnPlay.setOnClickListener {
+            mediaPlayer?.let {
+                if (it.isPlaying){
+                    it.pause()
+                    binding.btnPlay.setImageResource(R.drawable.baseline_play_arrow_24)
+                } else {
+                    it.start()
+                    binding.btnPlay.setImageResource(R.drawable.baseline_pause_24)
+                }
+            }
+        }
+
+        binding.btnNext.setOnClickListener {
+            if (arrayOfSongs.isNotEmpty()){
+                current = (current+1) % arrayOfSongs.size
+                startMusic(current)
+                adapter?.setSelected(current)
+                mediaRecyclerView.scrollToPosition(current)
+            }
+        }
+
+        binding.btnPrevious.setOnClickListener {
+            if (arrayOfSongs.isNotEmpty()){
+                current = (current-1 + arrayOfSongs.size) % arrayOfSongs.size
+                startMusic(current)
+                adapter?.setSelected(current)
+                mediaRecyclerView.scrollToPosition(current)
+            }
+        }
+
+        binding.btnLoop.setOnClickListener {
+            mediaPlayer?.isLooping = true
+            Toast.makeText(this, "Loop ON", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnLoopOff.setOnClickListener {
+            mediaPlayer?.isLooping = false
+            Toast.makeText(this, "Loop OFF", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean
+            ) {
+                if (fromUser){
+                    mediaPlayer?.seekTo(progress)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+        })
+    }
+
+    private fun startMusic(position : Int){
+        current = position
+
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+
+        val uri = arrayOfSongs[position].path.toUri()
+        mediaPlayer = MediaPlayer.create(this, uri)
+
+        mediaPlayer?.start()
+        binding.btnPlay.setImageResource(R.drawable.baseline_pause_24)
+
+        binding.seekbar.max = mediaPlayer?.duration ?: 0
+        updateSeekBar()
+
+        mediaPlayer?.setOnCompletionListener {
+            binding.btnNext.performClick()
+        }
+    }
+
+    private fun updateSeekBar(){
+        handler.postDelayed(object : Runnable{
+            override fun run() {
+                binding.seekbar.progress = mediaPlayer?.currentPosition!!
+                handler.postDelayed(this, 1000)
+            }
+        },0)
     }
 
     private fun fetchSongs(context: Context): ArrayList<Song>{

@@ -47,12 +47,20 @@
                 android:layout_marginTop="30dp"/>
 
             <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/btnLoop"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/loop"
-                android:layout_marginStart="50dp"
+                android:id="@+id/btnLoopOff"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/loop_off"
+                android:layout_marginStart="6dp"
                 android:layout_marginTop="80dp"/>
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/btnLoop"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:src="@drawable/loop"
+                android:layout_marginStart="14dp"
+                android:layout_marginTop="85dp"/>
 
         </LinearLayout>
 
@@ -80,6 +88,7 @@
         </LinearLayout>
 
         <SeekBar
+            android:id="@+id/seekbar"
             android:layout_width="260dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="160dp"
