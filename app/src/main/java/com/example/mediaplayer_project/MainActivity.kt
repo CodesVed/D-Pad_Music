@@ -2,6 +2,7 @@ package com.example.mediaplayer_project
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.net.Uri
@@ -151,6 +152,11 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
             }
         })
+
+        binding.btnSettings.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun startMusic(position : Int){

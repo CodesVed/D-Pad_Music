@@ -27,7 +27,7 @@
 
     <FrameLayout
         android:layout_width="330dp"
-        android:layout_height="220dp"
+        android:layout_height="240dp"
         android:background="@drawable/controller_bg"
         android:layout_gravity="center"
         android:layout_margin="30dp"
@@ -94,6 +94,14 @@
             android:layout_marginTop="160dp"
             android:layout_marginStart="35dp"
             android:background="@color/white"/>
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/btnSettings"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="90dp"
+            android:src="@drawable/settings"/>
 
     </FrameLayout>
 
